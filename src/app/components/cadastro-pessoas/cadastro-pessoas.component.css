@@ -1,0 +1,87 @@
+
+.card {
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.field {
+    margin-bottom: 1.5rem;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.flex {
+    display: flex;
+}
+
+.justify-content-between {
+    justify-content: space-between;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+.mb-3 {
+    margin-bottom: 1rem;
+}
+
+.mr-2 {
+    margin-right: 0.5rem;
+}
+
+.ml-2 {
+    margin-left: 0.5rem;
+}
+
+.person-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    display: inline-block;
+}
+
+.person-fisica {
+    background-color: var(--blue-500, #2196F3);
+    color: white;
+}
+
+.person-juridica {
+    background-color: var(--orange-500, #FF9800);
+    color: white;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.action-buttons button {
+    margin: 0;
+}
+
+.p-field-value {
+    padding: 0.5rem 0;
+}
+
+.dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.required-label {
+    color: var(--red-500, #f44336);
+    margin-left: 3px;
+}

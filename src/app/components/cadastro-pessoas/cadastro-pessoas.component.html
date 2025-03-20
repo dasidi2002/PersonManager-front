@@ -1,0 +1,123 @@
+<app-cadastro-pessoas-detalhe></app-cadastro-pessoas-detalhe>
+<p-toast></p-toast>
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+
+<div class="card">
+    <div class="flex justify-content-between align-items-center mb-3">
+        <h2>Cadastro de Pessoas</h2>
+        <p-button label="Nova Pessoa" icon="pi pi-plus" styleClass="p-button-success" (click)="openNew()"></p-button>
+    </div>
+
+    <p-table
+        [value]="persons"
+        [rows]="10"
+        [paginator]="true"
+        styleClass="p-datatable-striped p-datatable-gridlines"
+        [globalFilterFields]="['name', 'documentNumber', 'address.zipCode']"
+        responsiveLayout="scroll"
+        [rowHover]="true">
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Tipo</th>
+                <th>Documento</th>
+                <th>Nome</th>
+                <th>CEP</th>
+                <th>Endereço</th>
+                <th style="width: 120px">Ações</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-person>
+            <tr>
+                <td>
+                  <span [class]="'person-badge ' + (person.personType === 0 ? 'person-fisica' : 'person-juridica')">
+                      {{ getPersonTypeLabel(person.personType) }}
+                  </span>
+              </td>
+                <td>{{ person.documentNumber }}</td>
+                <td>{{ person.name }}</td>
+                <td>{{ person.address?.zipCode }}</td>
+                <td>{{ person.address?.street }}, {{ person.address?.number }}, {{ person.address?.city }} - {{ person.address?.state }}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button pButton pRipple icon="pi pi-pencil" class="p-button-text p-button-rounded p-button-info" (click)="editPerson(person)"></button>
+                        <button pButton pRipple icon="pi pi-trash" class="p-button-text p-button-rounded p-button-danger" (click)="deletePersonConfirm(person)"></button>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="6">Nenhuma pessoa encontrada.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- Dialog para adicionar/editar pessoa -->
+<p-dialog
+    [(visible)]="personDialog"
+    [style]="{width: '550px'}"
+    [header]="person.id ? 'Editar Pessoa' : 'Nova Pessoa'"
+    [modal]="true"
+    styleClass="p-fluid"
+    [draggable]="false"
+    [resizable]="false">
+
+    <ng-template pTemplate="content">
+        <div class="field" *ngIf="!person.id">
+            <label for="personType">Tipo de Pessoa</label>
+            <p-selectButton [options]="personTypeOptions" [(ngModel)]="isPersonTypeJuridica" optionValue="value" optionLabel="label" styleClass="person-type-select"></p-selectButton>
+        </div>
+
+        <div class="field" *ngIf="person.id">
+            <label for="personType">Tipo de Pessoa</label>
+            <div class="p-field-value">
+                <span [class]="'person-badge ' + (isPersonTypeJuridica ? 'person-juridica' : 'person-fisica')">
+                    {{ isPersonTypeJuridica ? 'Jurídica' : 'Física' }}
+                </span>
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="name">Nome <span class="required-label" *ngIf="!person.id">*</span></label>
+            <input type="text" id="name" pInputText [(ngModel)]="person.name" [required]="!person.id" autofocus [ngClass]="{'ng-invalid ng-dirty': submitted && !person.id && !person.name}" class="w-full" />
+            <small class="p-error" *ngIf="submitted && !person.id && !person.name">Nome é obrigatório.</small>
+        </div>
+
+        <div class="field">
+            <label for="documentNumber">Número do Documento <span class="required-label" *ngIf="!person.id">*</span></label>
+            <input type="text" id="documentNumber" pInputText [(ngModel)]="person.documentNumber" [required]="!person.id" [ngClass]="{'ng-invalid ng-dirty': submitted && !person.id && !person.documentNumber}" class="w-full" />
+            <small class="p-error" *ngIf="submitted && !person.id && !person.documentNumber">Documento é obrigatório.</small>
+        </div>
+
+        <div class="field">
+            <label for="zipCode">CEP <span class="required-label" *ngIf="!person.id">*</span></label>
+            <p-inputMask id="zipCode" mask="99999-999" [(ngModel)]="person.zipCode" placeholder="00000-000" [required]="!person.id" [ngClass]="{'ng-invalid ng-dirty': submitted && !person.id && !person.zipCode}"></p-inputMask>
+            <small class="p-error" *ngIf="submitted && !person.id && !person.zipCode">CEP é obrigatório.</small>
+        </div>
+
+        <!-- Campos específicos para pessoa física -->
+        <div class="field" *ngIf="!isPersonTypeJuridica">
+            <label for="birthDate">Data de Nascimento <span class="required-label" *ngIf="!person.id">*</span></label>
+            <p-calendar id="birthDate" [(ngModel)]="person.birthDate" dateFormat="dd/mm/yy" [showIcon]="true" [required]="!person.id" [ngClass]="{'ng-invalid ng-dirty': submitted && !person.id && !isPersonTypeJuridica && !person.birthDate}"></p-calendar>
+            <small class="p-error" *ngIf="submitted && !person.id && !isPersonTypeJuridica && !person.birthDate">Data de nascimento é obrigatória.</small>
+        </div>
+
+        <!-- Campos específicos para pessoa jurídica -->
+        <div class="field" *ngIf="isPersonTypeJuridica">
+            <label for="companyName">Nome da Empresa <span class="required-label" *ngIf="!person.id">*</span></label>
+            <input type="text" id="companyName" pInputText [(ngModel)]="person.companyName" [required]="!person.id" [ngClass]="{'ng-invalid ng-dirty': submitted && !person.id && isPersonTypeJuridica && !person.companyName}" class="w-full" />
+            <small class="p-error" *ngIf="submitted && !person.id && isPersonTypeJuridica && !person.companyName">Nome da empresa é obrigatório.</small>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <div class="dialog-footer">
+            <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-outlined" (click)="hideDialog()"></p-button>
+            <p-button label="Salvar" icon="pi pi-check" styleClass="p-button-primary" (click)="savePerson()"></p-button>
+        </div>
+    </ng-template>
+</p-dialog>
