@@ -35,7 +35,7 @@
                       {{ getPersonTypeLabel(person.personType) }}
                   </span>
               </td>
-                <td>{{ person.documentNumber }}</td>
+                <td>{{ formatDocument(person.documentNumber, person.personType) }}</td>
                 <td>{{ person.name }}</td>
                 <td>{{ person.address?.zipCode }}</td>
                 <td>{{ person.address?.street }}, {{ person.address?.number }}, {{ person.address?.city }} - {{ person.address?.state }}</td>
@@ -87,10 +87,16 @@
             <small class="p-error" *ngIf="submitted && !person.id && !person.name">Nome é obrigatório.</small>
         </div>
 
-        <div class="field">
-            <label for="documentNumber">Número do Documento <span class="required-label" *ngIf="!person.id">*</span></label>
-            <input type="text" id="documentNumber" pInputText [(ngModel)]="person.documentNumber" [required]="!person.id" [ngClass]="{'ng-invalid ng-dirty': submitted && !person.id && !person.documentNumber}" class="w-full" />
-            <small class="p-error" *ngIf="submitted && !person.id && !person.documentNumber">Documento é obrigatório.</small>
+        <div class="field" *ngIf="!isPersonTypeJuridica">
+            <label for="documentNumber">Número do Documento (CPF) <span class="required-label" *ngIf="!person.id">*</span></label>
+            <p-inputMask id="documentNumber" mask="999.999.999-99" [(ngModel)]="person.documentNumber" placeholder="000.000.000-00" [required]="!person.id" [ngClass]="{'ng-invalid ng-dirty': submitted && !person.id && !person.documentNumber}"></p-inputMask>
+            <small class="p-error" *ngIf="submitted && !person.id && !person.documentNumber">CPF é obrigatório.</small>
+        </div>
+
+        <div class="field" *ngIf="isPersonTypeJuridica">
+            <label for="documentNumber">Número do Documento (CNPJ) <span class="required-label" *ngIf="!person.id">*</span></label>
+            <p-inputMask id="documentNumber" mask="99.999.999/9999-99" [(ngModel)]="person.documentNumber" placeholder="00.000.000/0000-00" [required]="!person.id" [ngClass]="{'ng-invalid ng-dirty': submitted && !person.id && !person.documentNumber}"></p-inputMask>
+            <small class="p-error" *ngIf="submitted && !person.id && !person.documentNumber">CNPJ é obrigatório.</small>
         </div>
 
         <div class="field">

@@ -58,9 +58,8 @@ export class CadastroPessoasComponent implements OnInit {
   constructor(
     private pessoasService: CadastroPessoasService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private confirmationService: ConfirmationService
+    ) {}
 
   ngOnInit() {
     this.loadPersons();
@@ -81,7 +80,6 @@ export class CadastroPessoasComponent implements OnInit {
           detail: `Erro ao carregar pessoas: ${error.message || 'Erro desconhecido'}`,
           life: 5000
         });
-        console.error('Erro detalhado ao carregar pessoas:', error);
       }
     });
   }
@@ -119,15 +117,18 @@ export class CadastroPessoasComponent implements OnInit {
   }
 
   editPerson(person: Person) {
-    // Cria uma cópia dos dados originais para comparação posterior
     this.originalPerson = { ...person };
     this.person = { ...person };
     this.isPersonTypeJuridica = person.personType === 1;
 
-    // Garantir que o zipCode seja acessível diretamente no objeto person
     if (person.address && person.address.zipCode) {
       this.person.zipCode = person.address.zipCode;
       this.originalPerson.zipCode = person.address.zipCode;
+    }
+
+    if (person.birthDate && !this.isPersonTypeJuridica) {
+      this.person.birthDate = new Date(person.birthDate);
+      this.originalPerson.birthDate = new Date(person.birthDate);
     }
 
     this.personDialog = true;
@@ -178,48 +179,17 @@ export class CadastroPessoasComponent implements OnInit {
     }
 
     if (!this.isPersonTypeJuridica && !this.person.birthDate) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Data de nascimento é obrigatória para pessoa física',
-        life: 3000
-      });
       return false;
     }
 
-    
-
     return true;
-  }
-
-  saveJuridicalPerson(): void {
-    const legalPerson: LegalPersonRequest = {
-      name: this.person.name || '',
-      documentNumber: this.person.documentNumber || '',
-      zipCode: this.person.zipCode || '',
-      companyName: this.person.companyName || ''
-    };
-
-    if (this.person.id) {
-      // Atualização
-      this.pessoasService.updateLegalPerson(this.person.id, legalPerson).subscribe({
-        next: () => this.handleSuccess('Pessoa jurídica atualizada'),
-        error: (error) => this.handleError('Erro ao atualizar pessoa jurídica', error)
-      });
-    } else {
-      // Criação
-      this.pessoasService.createLegalPerson(legalPerson).subscribe({
-        next: () => this.handleSuccess('Pessoa jurídica criada'),
-        error: (error) => this.handleError('Erro ao criar pessoa jurídica', error)
-      });
-    }
   }
 
   saveNaturalPerson(): void {
     const naturalPerson: NaturalPersonRequest = {
       name: this.person.name || '',
-      documentNumber: this.person.documentNumber || '',
-      zipCode: this.person.zipCode || '',
+      documentNumber: this.removeNonNumeric(this.person.documentNumber) || '',
+      zipCode: this.removeNonNumeric(this.person.zipCode) || '',
       birthDate: this.person.birthDate || null
     };
 
@@ -234,6 +204,29 @@ export class CadastroPessoasComponent implements OnInit {
       this.pessoasService.createNaturalPerson(naturalPerson).subscribe({
         next: () => this.handleSuccess('Pessoa física criada'),
         error: (error) => this.handleError('Erro ao criar pessoa física', error)
+      });
+    }
+  }
+
+  saveJuridicalPerson(): void {
+    const legalPerson: LegalPersonRequest = {
+      name: this.person.name || '',
+      documentNumber: this.removeNonNumeric(this.person.documentNumber) || '',
+      zipCode: this.removeNonNumeric(this.person.zipCode) || '',
+      companyName: this.person.companyName || ''
+    };
+
+    if (this.person.id) {
+      // Atualização
+      this.pessoasService.updateLegalPerson(this.person.id, legalPerson).subscribe({
+        next: () => this.handleSuccess('Pessoa jurídica atualizada'),
+        error: (error) => this.handleError('Erro ao atualizar pessoa jurídica', error)
+      });
+    } else {
+      // Criação
+      this.pessoasService.createLegalPerson(legalPerson).subscribe({
+        next: () => this.handleSuccess('Pessoa jurídica criada'),
+        error: (error) => this.handleError('Erro ao criar pessoa jurídica', error)
       });
     }
   }
@@ -272,5 +265,27 @@ export class CadastroPessoasComponent implements OnInit {
 
   getPersonTypeLabel(personType: number): string {
     return personType === 1 ? 'Jurídica' : 'Física';
+  }
+
+  removeNonNumeric(value: string): string {
+    if (!value) return '';
+    return value.replace(/\D/g, '');
+  }
+
+  formatDocument(document: string, personType: number): string {
+    if (!document) return '';
+
+    const digits = this.removeNonNumeric(document);
+
+    // Formata como CPF (pessoa física)
+    if (personType === 0) {
+      if (digits.length !== 11) return document;
+      return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+    // Formata como CNPJ (pessoa jurídica)
+    else {
+      if (digits.length !== 14) return document;
+      return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    }
   }
 }
