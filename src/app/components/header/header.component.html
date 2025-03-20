@@ -1,0 +1,24 @@
+<div class="card">
+  <p-menubar [model]="items">
+    <ng-template #start>
+      <div class="flex items-center">
+        <span class="app-title">
+          <i class="pi pi-users mr-2" style="font-size: 1.2rem;"></i>
+          Person Manager
+        </span>
+      </div>
+    </ng-template>
+    <ng-template #end>
+      <div class="flex items-center gap-3">
+        <p-avatar image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png"
+                 shape="circle"
+                 styleClass="cursor-pointer"
+                 (click)="menu.toggle($event)">
+        </p-avatar>
+        <p-menu #menu [popup]="true" [model]="userMenuItems"></p-menu>
+      </div>
+    </ng-template>
+  </p-menubar>
+</div>
+<div class="main-container">
+</div>
